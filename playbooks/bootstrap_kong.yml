@@ -1,0 +1,8 @@
+- name: Bootstrap Kong database
+  hosts: kong
+  become: true
+
+  tasks:
+    - name: Run Kong migrations
+      command: kong migrations bootstrap
+      when: kong_database == "postgres"

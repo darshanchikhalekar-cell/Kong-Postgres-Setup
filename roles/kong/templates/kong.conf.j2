@@ -1,0 +1,12 @@
+database = {{ kong_database }}
+
+pg_host = {{ pg_host }}
+pg_port = {{ pg_port }}
+pg_user = {{ pg_user }}
+pg_password = {{ pg_password }}
+pg_database = {{ pg_database }}
+
+proxy_listen = 0.0.0.0:{{ kong_proxy_port }}
+admin_listen = 0.0.0.0:{{ kong_admin_port }}
+
+log_level = notice

@@ -1,0 +1,41 @@
+- name: Install required packages
+  apt:
+    name:
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: true
+
+- name: Add Kong GPG key
+  shell: |
+    curl -1sLf https://packages.konghq.com/public/gateway/gpg.key |
+    gpg --dearmor |
+    tee /usr/share/keyrings/kong-archive-keyring.gpg > /dev/null
+
+- name: Add Kong repository
+  copy:
+    dest: /etc/apt/sources.list.d/kong.list
+    content: |
+      deb [signed-by=/usr/share/keyrings/kong-archive-keyring.gpg] \
+      https://packages.konghq.com/public/gateway-313/ubuntu \
+      noble main
+
+- name: Install Kong
+  apt:
+    name: kong
+    state: present
+    update_cache: true
+
+- name: Configure Kong
+  template:
+    src: kong.conf.j2
+    dest: /etc/kong/kong.conf
+    mode: '0644'
+
+- name: Stop Kong if running
+  command: kong stop
+  ignore_errors: true
+
+- name: Start Kong
+  command: kong start

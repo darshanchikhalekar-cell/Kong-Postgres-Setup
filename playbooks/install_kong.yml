@@ -1,0 +1,5 @@
+- name: Install and configure Kong
+  hosts: kong
+  become: true
+  roles:
+    - kong

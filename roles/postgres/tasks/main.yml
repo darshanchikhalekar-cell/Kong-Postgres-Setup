@@ -1,0 +1,39 @@
+- name: Install PostgreSQL packages
+  apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+    state: present
+    update_cache: true
+
+- name: Ensure PostgreSQL is running
+  systemd:
+    name: postgresql
+    state: started
+    enabled: true
+
+- name: Allow remote connections (pg_hba.conf)
+  lineinfile:
+    path: /etc/postgresql/*/main/pg_hba.conf
+    line: 'host all all 0.0.0.0/0 md5'
+    insertafter: EOF
+  notify: Restart PostgreSQL
+
+- name: Listen on all interfaces
+  lineinfile:
+    path: /etc/postgresql/*/main/postgresql.conf
+    regexp: '^#?listen_addresses'
+    line: "listen_addresses = '*'"
+  notify: Restart PostgreSQL
+
+- name: Create PostgreSQL user for Kong
+  become_user: postgres
+  shell: |
+    psql -tc "SELECT 1 FROM pg_roles WHERE rolname='{{ pg_user }}'" | grep -q 1 || \
+    psql -c "CREATE USER {{ pg_user }} WITH PASSWORD '{{ pg_password }}';"
+
+- name: Create Kong database
+  become_user: postgres
+  shell: |
+    psql -tc "SELECT 1 FROM pg_database WHERE datname='{{ pg_database }}'" | grep -q 1 || \
+    psql -c "CREATE DATABASE {{ pg_database }} OWNER {{ pg_user }};"
