@@ -4,26 +4,37 @@
       - postgresql
       - postgresql-contrib
     state: present
-    update_cache: true
+    update_cache: yes
 
 - name: Ensure PostgreSQL is running
   systemd:
     name: postgresql
     state: started
-    enabled: true
+    enabled: yes
+
+- name: Detect PostgreSQL version directory
+  find:
+    paths: /etc/postgresql
+    file_type: directory
+    depth: 1
+  register: pg_dirs
+
+- name: Set PostgreSQL config directory
+  set_fact:
+    pg_conf_dir: "{{ pg_dirs.files[0].path }}/main"
+
+- name: Configure PostgreSQL to listen on all interfaces
+  lineinfile:
+    path: "{{ pg_conf_dir }}/postgresql.conf"
+    regexp: '^#?listen_addresses'
+    line: "listen_addresses = '*'"
+  notify: Restart PostgreSQL
 
 - name: Allow remote connections (pg_hba.conf)
   lineinfile:
-    path: /etc/postgresql/*/main/pg_hba.conf
-    line: 'host all all 0.0.0.0/0 md5'
+    path: "{{ pg_conf_dir }}/pg_hba.conf"
+    line: "host all all 0.0.0.0/0 md5"
     insertafter: EOF
-  notify: Restart PostgreSQL
-
-- name: Listen on all interfaces
-  lineinfile:
-    path: /etc/postgresql/*/main/postgresql.conf
-    regexp: '^#?listen_addresses'
-    line: "listen_addresses = '*'"
   notify: Restart PostgreSQL
 
 - name: Create PostgreSQL user for Kong
