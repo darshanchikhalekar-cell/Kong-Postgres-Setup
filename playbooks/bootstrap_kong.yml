@@ -1,5 +1,5 @@
 - name: Bootstrap Kong database
-  hosts: kong
+  hosts: grp-kong-demo
   become: true
 
   tasks:
