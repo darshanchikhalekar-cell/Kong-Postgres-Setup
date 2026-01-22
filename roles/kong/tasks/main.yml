@@ -7,9 +7,9 @@
     state: present
     update_cache: yes
 
-- name: Add Kong GPG key
+- name: Add Kong GPG key (gateway-3.x, xenial)
   shell: |
-    curl -fsSL https://packages.konghq.com/public/gateway/gpg.key | apt-key add -
+    curl -fsSL https://packages.konghq.com/public/gateway-3.x/gpg.key | apt-key add -
 
 - name: Add Kong repository (Ubuntu 16.04 compatible)
   copy:
