@@ -1,5 +1,7 @@
 - name: Install and configure Kong
-  hosts: kong
+  hosts: host-kong-demo
   become: true
+  gather_facts: false
+
   roles:
     - kong
