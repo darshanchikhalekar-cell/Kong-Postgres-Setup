@@ -1,5 +1,5 @@
 # -------------------------------------------------
-# Pre-clean any old Kong repo files
+# Pre-clean any old or broken Kong repo files
 # -------------------------------------------------
 - name: Remove old Kong apt repo files if present
   file:
@@ -43,7 +43,7 @@
     creates: /etc/apt/sources.list.d/kong-gateway-313.list
 
 # -------------------------------------------------
-# Update apt cache (now it will work)
+# Update apt cache after adding Kong repo
 # -------------------------------------------------
 - name: Update apt cache after adding Kong repo
   apt:
@@ -58,7 +58,7 @@
     state: present
 
 # -------------------------------------------------
-# Configure & start Kong
+# Configure Kong (DO NOT START IT HERE)
 # -------------------------------------------------
 - name: Configure Kong
   template:
@@ -67,10 +67,3 @@
     owner: root
     group: root
     mode: '0644'
-
-- name: Stop Kong if running
-  command: kong stop
-  ignore_errors: yes
-
-- name: Start Kong
-  command: kong start
