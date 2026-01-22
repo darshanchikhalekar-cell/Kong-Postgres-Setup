@@ -3,25 +3,33 @@
     name:
       - curl
       - gnupg
-      - lsb-release
+      - ca-certificates
     state: present
     update_cache: yes
 
-- name: Add Kong GPG key (gateway-3.x, xenial)
+- name: Add Kong 3.13 GPG key (exact manual method)
   shell: |
-    curl -fsSL https://packages.konghq.com/public/gateway-3.x/gpg.key | apt-key add -
+    curl -1sLf "https://packages.konghq.com/public/gateway-313/gpg.B3A98B904066BD1F.key" \
+    | gpg --dearmor \
+    | tee /usr/share/keyrings/kong-gateway-313-archive-keyring.gpg > /dev/null
+  args:
+    creates: /usr/share/keyrings/kong-gateway-313-archive-keyring.gpg
 
-- name: Add Kong repository (Ubuntu 16.04 compatible)
-  copy:
-    dest: /etc/apt/sources.list.d/kong.list
-    content: |
-      deb https://packages.konghq.com/public/gateway-3.x/ubuntu xenial main
+- name: Add Kong 3.13 repository (forced noble, same as manual)
+  shell: |
+    curl -1sLf "https://packages.konghq.com/public/gateway-313/config.deb.txt?distro=ubuntu&codename=noble" \
+    | tee /etc/apt/sources.list.d/kong-gateway-313.list > /dev/null
+  args:
+    creates: /etc/apt/sources.list.d/kong-gateway-313.list
 
-- name: Install Kong
+- name: Update apt cache after adding Kong repo
   apt:
-    name: kong
-    state: present
     update_cache: yes
+
+- name: Install Kong Enterprise 3.13.0.0
+  apt:
+    name: kong-enterprise-edition=3.13.0.0
+    state: present
 
 - name: Configure Kong
   template:
