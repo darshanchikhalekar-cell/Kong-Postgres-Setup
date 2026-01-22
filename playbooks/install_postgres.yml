@@ -1,6 +1,6 @@
-- name: Install and configure PostgreSQL
-  hosts: grp-postgres-demo
+- name: Install and configure Kong
+  hosts: grp-kong-demo
   become: true
 
   roles:
-    - postgres
+    - kong
