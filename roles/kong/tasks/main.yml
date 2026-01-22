@@ -5,27 +5,23 @@
       - gnupg
       - lsb-release
     state: present
-    update_cache: true
+    update_cache: yes
 
 - name: Add Kong GPG key
   shell: |
-    curl -1sLf https://packages.konghq.com/public/gateway/gpg.key |
-    gpg --dearmor |
-    tee /usr/share/keyrings/kong-archive-keyring.gpg > /dev/null
+    curl -fsSL https://packages.konghq.com/public/gateway/gpg.key | apt-key add -
 
-- name: Add Kong repository
+- name: Add Kong repository (Ubuntu 16.04 compatible)
   copy:
     dest: /etc/apt/sources.list.d/kong.list
     content: |
-      deb [signed-by=/usr/share/keyrings/kong-archive-keyring.gpg] \
-      https://packages.konghq.com/public/gateway-313/ubuntu \
-      noble main
+      deb https://packages.konghq.com/public/gateway-3.x/ubuntu xenial main
 
 - name: Install Kong
   apt:
     name: kong
     state: present
-    update_cache: true
+    update_cache: yes
 
 - name: Configure Kong
   template:
@@ -35,7 +31,7 @@
 
 - name: Stop Kong if running
   command: kong stop
-  ignore_errors: true
+  ignore_errors: yes
 
 - name: Start Kong
   command: kong start
