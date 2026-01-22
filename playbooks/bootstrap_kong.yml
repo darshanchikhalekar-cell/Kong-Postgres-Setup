@@ -1,8 +1,13 @@
 - name: Bootstrap Kong database
-  hosts: grp-kong-demo
+  hosts: kong
   become: true
+  gather_facts: false
 
   tasks:
-    - name: Run Kong migrations
+    - name: Run Kong migrations bootstrap
       command: kong migrations bootstrap
-      when: kong_database == "postgres"
+      register: bootstrap_out
+      failed_when: false
+
+    - name: Start Kong after bootstrap
+      command: kong start
