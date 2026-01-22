@@ -1,5 +1,6 @@
 - name: Install and configure PostgreSQL
-  hosts: postgres
+  hosts: grp-postgres-demo
   become: true
+
   roles:
     - postgres
