@@ -9,27 +9,36 @@
 
 - name: Add Kong GPG key
   shell: |
-    curl -fsSL https://packages.konghq.com/public/gateway/gpg.key |
-    gpg --dearmor |
-    tee /usr/share/keyrings/kong-archive-keyring.gpg > /dev/null
+    curl -fsSL https://packages.konghq.com/public/gateway/gpg.key \
+    | gpg --dearmor \
+    | tee /usr/share/keyrings/kong-archive-keyring.gpg > /dev/null
+  args:
+    creates: /usr/share/keyrings/kong-archive-keyring.gpg
 
 - name: Add Kong repository
   copy:
     dest: /etc/apt/sources.list.d/kong.list
     content: |
-      deb [signed-by=/usr/share/keyrings/kong-archive-keyring.gpg] \
-      https://packages.konghq.com/public/gateway-313/ubuntu {{ ansible_distribution_release }} main
+      deb [signed-by=/usr/share/keyrings/kong-archive-keyring.gpg] https://packages.konghq.com/public/gateway-313/ubuntu {{ ansible_distribution_release }} main
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Update apt cache after adding Kong repo
+  apt:
+    update_cache: yes
 
 - name: Install Kong Enterprise
   apt:
     name: kong-enterprise-edition=3.13.0.0
     state: present
-    update_cache: yes
 
 - name: Configure Kong
   template:
     src: kong.conf.j2
     dest: /etc/kong/kong.conf
+    owner: root
+    group: root
     mode: '0644'
 
 - name: Stop Kong if running
