@@ -7,29 +7,24 @@
     state: present
     update_cache: yes
 
-- name: Add Kong 3.13 GPG key (exact manual method)
+- name: Add Kong GPG key
   shell: |
-    curl -1sLf "https://packages.konghq.com/public/gateway-313/gpg.B3A98B904066BD1F.key" \
-    | gpg --dearmor \
-    | tee /usr/share/keyrings/kong-gateway-313-archive-keyring.gpg > /dev/null
-  args:
-    creates: /usr/share/keyrings/kong-gateway-313-archive-keyring.gpg
+    curl -fsSL https://packages.konghq.com/public/gateway/gpg.key |
+    gpg --dearmor |
+    tee /usr/share/keyrings/kong-archive-keyring.gpg > /dev/null
 
-- name: Add Kong 3.13 repository (forced noble, same as manual)
-  shell: |
-    curl -1sLf "https://packages.konghq.com/public/gateway-313/config.deb.txt?distro=ubuntu&codename=noble" \
-    | tee /etc/apt/sources.list.d/kong-gateway-313.list > /dev/null
-  args:
-    creates: /etc/apt/sources.list.d/kong-gateway-313.list
+- name: Add Kong repository
+  copy:
+    dest: /etc/apt/sources.list.d/kong.list
+    content: |
+      deb [signed-by=/usr/share/keyrings/kong-archive-keyring.gpg] \
+      https://packages.konghq.com/public/gateway-313/ubuntu {{ ansible_distribution_release }} main
 
-- name: Update apt cache after adding Kong repo
-  apt:
-    update_cache: yes
-
-- name: Install Kong Enterprise 3.13.0.0
+- name: Install Kong Enterprise
   apt:
     name: kong-enterprise-edition=3.13.0.0
     state: present
+    update_cache: yes
 
 - name: Configure Kong
   template:
