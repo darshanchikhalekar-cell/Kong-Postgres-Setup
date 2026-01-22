@@ -1,7 +1,7 @@
 - name: Install and configure Kong
   hosts: grp-kong-demo
   become: true
-  gather_facts: false
+  gather_facts: true
 
   roles:
     - kong
