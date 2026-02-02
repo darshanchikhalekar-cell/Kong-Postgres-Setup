@@ -3,6 +3,16 @@
 # Install and configure PostgreSQL for Kong
 # ==========================================================
 
+- name: Validate required PostgreSQL survey inputs
+  assert:
+    that:
+      - pg_user is defined
+      - pg_password is defined
+      - pg_database is defined
+    fail_msg: >
+      Required PostgreSQL variables missing.
+      Ensure pg_user, pg_password, and pg_database are provided via AWX survey.
+
 - name: Install PostgreSQL packages
   apt:
     name:
@@ -43,7 +53,7 @@
   notify: Restart PostgreSQL
 
 # ==========================================================
-# Database & User setup for Kong
+# Database & User setup for Kong (FROM SURVEY)
 # ==========================================================
 
 - name: Create PostgreSQL user for Kong
