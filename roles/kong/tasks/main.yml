@@ -1,6 +1,21 @@
-# -------------------------------------------------
-# Pre-clean any old or broken Kong repo files
-# -------------------------------------------------
+---
+# ==========================================================
+# Install and configure Kong
+# ==========================================================
+
+- name: Validate Kong DB survey inputs
+  assert:
+    that:
+      - kong_database is defined
+      - pg_host is defined
+      - pg_user is defined
+      - pg_password is defined
+      - pg_database is defined
+    fail_msg: >
+      Missing Kong database survey inputs.
+      Ensure kong_database, pg_host, pg_user,
+      pg_password, and pg_database are provided.
+
 - name: Remove old Kong apt repo files if present
   file:
     path: "{{ item }}"
@@ -8,58 +23,41 @@
   loop:
     - /etc/apt/sources.list.d/kong.list
     - /etc/apt/sources.list.d/kong-gateway-313.list
+  ignore_errors: true
 
-# -------------------------------------------------
-# Install base dependencies
-# -------------------------------------------------
 - name: Install required packages
   apt:
     name:
       - curl
-      - ca-certificates
       - gnupg
     state: present
     update_cache: yes
 
-# -------------------------------------------------
-# Add Kong 3.13 GPG key (official)
-# -------------------------------------------------
 - name: Add Kong 3.13 GPG key
   shell: |
     curl -1sLf "https://packages.konghq.com/public/gateway-313/gpg.B3A98B904066BD1F.key" \
     | gpg --dearmor \
     | tee /usr/share/keyrings/kong-gateway-313-archive-keyring.gpg > /dev/null
   args:
-    creates: /usr/share/keyrings/kong-gateway-313-archive-keyring.gpg
+    executable: /bin/bash
 
-# -------------------------------------------------
-# Add Kong 3.13 repository (official method)
-# -------------------------------------------------
 - name: Add Kong 3.13 repository
   shell: |
-    curl -1sLf "https://packages.konghq.com/public/gateway-313/config.deb.txt?distro=ubuntu&codename=noble" \
-    | tee /etc/apt/sources.list.d/kong-gateway-313.list > /dev/null
+    echo "deb [signed-by=/usr/share/keyrings/kong-gateway-313-archive-keyring.gpg] \
+    https://packages.konghq.com/public/gateway-313 $(lsb_release -cs) main" \
+    | tee /etc/apt/sources.list.d/kong-gateway-313.list
   args:
-    creates: /etc/apt/sources.list.d/kong-gateway-313.list
+    executable: /bin/bash
 
-# -------------------------------------------------
-# Update apt cache after adding Kong repo
-# -------------------------------------------------
 - name: Update apt cache after adding Kong repo
   apt:
     update_cache: yes
 
-# -------------------------------------------------
-# Install Kong Enterprise 3.13
-# -------------------------------------------------
 - name: Install Kong Enterprise
   apt:
-    name: kong-enterprise-edition=3.13.0.0
+    name: kong-enterprise-edition
     state: present
 
-# -------------------------------------------------
-# Configure Kong (DO NOT START IT HERE)
-# -------------------------------------------------
 - name: Configure Kong
   template:
     src: kong.conf.j2
