@@ -1,5 +1,5 @@
 - name: Install and configure PostgreSQL
-  hosts: grp-postgres-demo
+  hosts: postgres
   become: true
   gather_facts: false
 
