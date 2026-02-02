@@ -1,19 +1,16 @@
 # =========================
-# Kong core defaults
+# Kong configuration
 # =========================
-kong_database: postgres
 
-# =========================
-# PostgreSQL connection (used by kong.conf.j2)
-# =========================
-pg_host: "{{ postgres_vm_ip }}"
-pg_port: 5432
-pg_user: kong
-pg_password: kongpass
-pg_database: kong
+database = {{ kong_database }}
 
-# =========================
-# Kong ports
-# =========================
-kong_proxy_port: 8000
-kong_admin_port: 8001
+pg_host = {{ pg_host }}
+pg_port = {{ pg_port }}
+pg_user = {{ pg_user }}
+pg_password = {{ pg_password }}
+pg_database = {{ pg_database }}
+
+proxy_listen = 0.0.0.0:{{ kong_proxy_port }}
+admin_listen = 0.0.0.0:{{ kong_admin_port }}
+
+log_level = notice
