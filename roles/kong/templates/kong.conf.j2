@@ -5,12 +5,12 @@
 database = {{ kong_database }}
 
 pg_host = {{ pg_host }}
-pg_port = {{ pg_port }}
+pg_port = 5432
 pg_user = {{ pg_user }}
 pg_password = {{ pg_password }}
 pg_database = {{ pg_database }}
 
-proxy_listen = 0.0.0.0:{{ kong_proxy_port }}
-admin_listen = 0.0.0.0:{{ kong_admin_port }}
+proxy_listen = 0.0.0.0:8000
+admin_listen = 0.0.0.0:8001
 
 log_level = notice
