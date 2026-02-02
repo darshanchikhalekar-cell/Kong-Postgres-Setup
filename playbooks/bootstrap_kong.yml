@@ -1,5 +1,5 @@
 - name: Bootstrap Kong database
-  hosts: grp-kong-demo
+  hosts: kong
   become: true
   gather_facts: false
 
