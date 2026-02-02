@@ -5,14 +5,14 @@
 kong_database: postgres
 
 # ==========================================================
-# PostgreSQL connection (used by kong.conf.j2)
+# PostgreSQL defaults for Kong
 # ==========================================================
 
-pg_host: "{{ postgres_vm_ip }}"
-pg_port: 5432
 pg_user: kong
 pg_password: kongpass
 pg_database: kong
+pg_port: 5432
+
 
 # ==========================================================
 # Kong ports
