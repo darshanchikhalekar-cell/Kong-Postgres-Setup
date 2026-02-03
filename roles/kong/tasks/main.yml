@@ -80,6 +80,18 @@
     state: present
 
 # -------------------------------------------------
+# 🔴 NEW (MANDATORY AFTER DELETE)
+# Ensure Kong config directory exists
+# -------------------------------------------------
+- name: Ensure /etc/kong exists
+  file:
+    path: /etc/kong
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+# -------------------------------------------------
 # Configure Kong (DO NOT START IT HERE)
 # -------------------------------------------------
 - name: Configure Kong
