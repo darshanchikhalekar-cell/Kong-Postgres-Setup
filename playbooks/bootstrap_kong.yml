@@ -1,13 +1,46 @@
-- name: Bootstrap Kong database
+- name: Bootstrap and start Kong safely
   hosts: kong
   become: true
   gather_facts: false
 
   tasks:
-    - name: Run Kong migrations bootstrap
-      command: kong migrations bootstrap
-      register: bootstrap_out
-      failed_when: false
 
-    - name: Start Kong after bootstrap
+    # -------------------------------------------------
+    # Check if Kong DB is already bootstrapped
+    # -------------------------------------------------
+    - name: Check Kong migrations status
+      command: kong migrations list
+      register: migrations_status
+      failed_when: false
+      changed_when: false
+
+    # -------------------------------------------------
+    # Bootstrap DB ONLY if not already bootstrapped
+    # -------------------------------------------------
+    - name: Bootstrap Kong database (first install only)
+      command: kong migrations bootstrap
+      when: migrations_status.rc != 0
+      register: bootstrap_out
+
+    # -------------------------------------------------
+    # Check if Kong is already running
+    # -------------------------------------------------
+    - name: Check Kong status
+      command: kong status
+      register: kong_status
+      failed_when: false
+      changed_when: false
+
+    # -------------------------------------------------
+    # Start Kong only if not running
+    # -------------------------------------------------
+    - name: Start Kong
       command: kong start
+      when: "'not running' in kong_status.stdout"
+
+    # -------------------------------------------------
+    # Success message
+    # -------------------------------------------------
+    - name: Kong startup confirmation
+      debug:
+        msg: "✅ Kong is installed, database is ready, and Kong is running."
