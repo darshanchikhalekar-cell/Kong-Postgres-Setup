@@ -19,32 +19,29 @@
         timeout: 60
 
     # -------------------------------------------------
-    # Check migration state properly
+    # Bootstrap DB (ignore if already bootstrapped)
     # -------------------------------------------------
-    - name: Check Kong migration status
-      shell: kong migrations list | grep -i "database is up-to-date"
-      register: migration_check
-      failed_when: false
-      changed_when: false
-
-    # -------------------------------------------------
-    # Bootstrap DB only if NOT initialized
-    # -------------------------------------------------
-    - name: Bootstrap Kong database (first install only)
+    - name: Bootstrap Kong database
       command: kong migrations bootstrap
-      when: migration_check.rc != 0
+      register: bootstrap_result
+      failed_when: false
+      changed_when: "'already' not in bootstrap_result.stderr"
 
     # -------------------------------------------------
-    # Run migrations safely (idempotent)
+    # Run migrations
     # -------------------------------------------------
     - name: Run Kong migrations up
       command: kong migrations up
+      register: migrate_up
+      failed_when: false
 
     - name: Finish Kong migrations
       command: kong migrations finish
+      register: migrate_finish
+      failed_when: false
 
     # -------------------------------------------------
-    # Ensure Kong service is started and enabled
+    # Start Kong
     # -------------------------------------------------
     - name: Start and enable Kong
       systemd:
