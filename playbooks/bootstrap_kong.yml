@@ -1,28 +1,42 @@
 - name: Bootstrap and start Kong
   hosts: kong
   become: true
+  gather_facts: false
+
+  vars:
+    kong_bin: /usr/local/bin/kong
+    kong_conf: /etc/kong/kong.conf
 
   tasks:
 
+  # -------------------------------------------------
+  # Wait for PostgreSQL to be ready
+  # -------------------------------------------------
   - name: Wait for PostgreSQL
     wait_for:
       host: 127.0.0.1
       port: 5432
       timeout: 60
 
-  - name: Bootstrap DB
-    command: /usr/local/bin/kong migrations bootstrap -c /etc/kong/kong.conf
-    register: bootstrap
-    failed_when: "'already' not in bootstrap.stderr and bootstrap.rc != 0"
+  # -------------------------------------------------
+  # Bootstrap Kong database (first install)
+  # -------------------------------------------------
+  - name: Bootstrap Kong database
+    command: "{{ kong_bin }} migrations bootstrap -c {{ kong_conf }}"
+    register: bootstrap_result
+    failed_when: "'already' not in bootstrap_result.stderr and bootstrap_result.rc != 0"
 
-  - name: Run migrations
-    command: /usr/local/bin/kong migrations up -c /etc/kong/kong.conf
+  # -------------------------------------------------
+  # Run migrations (safe even if already migrated)
+  # -------------------------------------------------
+  - name: Run Kong migrations up
+    command: "{{ kong_bin }} migrations up -c {{ kong_conf }}"
 
-  - name: Finish migrations
-    command: /usr/local/bin/kong migrations finish -c /etc/kong/kong.conf
+  - name: Finish Kong migrations
+    command: "{{ kong_bin }} migrations finish -c {{ kong_conf }}"
 
+  # -------------------------------------------------
+  # Start Kong
+  # -------------------------------------------------
   - name: Start Kong
-    systemd:
-      name: kong
-      state: started
-      enabled: yes
+    command: "{{ kong_bin }} start -c {{ kong_conf }}"
