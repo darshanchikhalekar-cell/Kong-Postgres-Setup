@@ -1,50 +1,28 @@
-- name: Bootstrap and start Kong safely
+- name: Bootstrap and start Kong
   hosts: kong
   become: true
-  gather_facts: false
-
-  vars:
-    kong_db_host: "{{ hostvars[groups['postgres'][0]].ansible_host | default(groups['postgres'][0]) }}"
-    kong_db_port: 5432
 
   tasks:
 
-    # -------------------------------------------------
-    # Wait for Postgres to be ready
-    # -------------------------------------------------
-    - name: Wait for Postgres to be reachable
-      wait_for:
-        host: "{{ kong_db_host }}"
-        port: "{{ kong_db_port }}"
-        timeout: 60
+  - name: Wait for PostgreSQL
+    wait_for:
+      host: 127.0.0.1
+      port: 5432
+      timeout: 60
 
-    # -------------------------------------------------
-    # Bootstrap DB (ignore if already bootstrapped)
-    # -------------------------------------------------
-    - name: Bootstrap Kong database
-      command: kong migrations bootstrap
-      register: bootstrap_result
-      failed_when: false
-      changed_when: "'already' not in bootstrap_result.stderr"
+  - name: Bootstrap DB
+    command: /usr/local/bin/kong migrations bootstrap -c /etc/kong/kong.conf
+    register: bootstrap
+    failed_when: "'already' not in bootstrap.stderr and bootstrap.rc != 0"
 
-    # -------------------------------------------------
-    # Run migrations
-    # -------------------------------------------------
-    - name: Run Kong migrations up
-      command: kong migrations up
-      register: migrate_up
-      failed_when: false
+  - name: Run migrations
+    command: /usr/local/bin/kong migrations up -c /etc/kong/kong.conf
 
-    - name: Finish Kong migrations
-      command: kong migrations finish
-      register: migrate_finish
-      failed_when: false
+  - name: Finish migrations
+    command: /usr/local/bin/kong migrations finish -c /etc/kong/kong.conf
 
-    # -------------------------------------------------
-    # Start Kong
-    # -------------------------------------------------
-    - name: Start and enable Kong
-      systemd:
-        name: kong
-        state: started
-        enabled: yes
+  - name: Start Kong
+    systemd:
+      name: kong
+      state: started
+      enabled: yes
